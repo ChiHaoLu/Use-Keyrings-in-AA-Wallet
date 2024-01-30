@@ -30,6 +30,7 @@
     "@metamask/eth-sig-util": "^7.0.0",
     "@metamask/utils": "^8.1.0",
     "ethereum-cryptography": "^2.1.2",
+    "ethers": "^6.10.0",
     "randombytes": "^2.1.0"
   },
   "devDependencies": {

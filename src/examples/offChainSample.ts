@@ -10,8 +10,14 @@ let accounts: Record<string, string>[] = [];
 keyring // eslint-disable-line @typescript-eslint/no-floating-promises
   .addAAWallets(
     accountNum,
-    Array(accountNum).fill(null).map(() => generateKey()),
-    Array(accountNum).fill(null).map((_, i) => `0x000000000000000000000000000000000000000${i + 1}` as Hex)
+    Array(accountNum)
+      .fill(null)
+      .map(() => generateKey()),
+    Array(accountNum)
+      .fill(null)
+      .map(
+        (_, i) => `0x000000000000000000000000000000000000000${i + 1}` as Hex,
+      ),
   )
   .then(async (newContractAddresses) => {
     accounts = newContractAddresses.map((address) => {

@@ -17,7 +17,25 @@ This repo is modified from the example of [eth-simple-keyring](https://github.co
 #### 2.1 Run the off-chain example
 
 ```
-# TBD
+$ yarn sample:offchain
+>
+yarn run v1.22.19
+$ ts-node src/examples/offChainSample.ts
+[
+  {
+    "address": "0x0000000000000000000000000000000000000001",
+    "privateKey": "68f935d806a690b36c08f9e479c7877bb9cb76b3c8a72fc667033d25c47b1672"
+  },
+  {
+    "address": "0x0000000000000000000000000000000000000002",
+    "privateKey": "60781eec58494d47f05a01232599c56f2a0ef1ff4499fc7faad8dd2fdc6c5eba"
+  },
+  {
+    "address": "0x0000000000000000000000000000000000000003",
+    "privateKey": "33d0e4fd190db45ce81b66ce96695bd1c3b31b36108fb9ad6bd1df40587f516f"
+  }
+]
+✨  Done in 0.75s.
 ```
 
 #### 2.2 Run the on-chain example
