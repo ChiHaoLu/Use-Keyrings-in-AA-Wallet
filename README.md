@@ -43,7 +43,9 @@ $ ts-node src/examples/offChainSample.ts
 Make sure to fill the `.env` fields.
 
 ```
-# TBD
+$ yarn sample:onchain
+>
+yarn run v1.22.19
 ```
 
 #### 2.3 Run the keyring controller example
