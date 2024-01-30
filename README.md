@@ -38,20 +38,11 @@ $ ts-node src/examples/offChainSample.ts
 ✨  Done in 0.75s.
 ```
 
-#### 2.2 Run the on-chain example
-
-Make sure to fill the `.env` fields.
+#### 2.2 Run the keyring controller example
 
 ```
-$ yarn sample:onchain
+$ yarn sample:keyring
 >
-yarn run v1.22.19
-```
-
-#### 2.3 Run the keyring controller example
-
-```
-# TBD
 ```
 
 ### 3. Run the formatter
