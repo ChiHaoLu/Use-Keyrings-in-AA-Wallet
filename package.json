@@ -1,0 +1,25 @@
+{
+  "name": "try-keyrings-in-aa",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "description": "If EOA is one of your aa wallet's owner, the Metamask KeyringController is a good helper to store the private key in the browser.",
+  "keywords": [
+    "ethereum",
+    "metamask",
+    "accounts",
+    "keys"
+  ],
+  "author": "ChiHaoLu",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChiHaoLu/Use-Keyrings-in-AA-Wallet.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "sign": "",
+    "test": ""
+  },
+  "dependencies": {
+    "@metamask/eth-keyring-controller": "^17.0.1"
+  }
+}
