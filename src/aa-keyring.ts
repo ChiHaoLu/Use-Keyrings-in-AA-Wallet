@@ -7,7 +7,11 @@ import {
   stripHexPrefix,
   toBuffer,
 } from "@ethereumjs/util";
-import { add0x, Eip1024EncryptedData, Hex, Keyring } from "@metamask/utils";
+import {
+  concatSig,
+} from "@metamask/eth-sig-util";
+import { add0x, Hex } from "@metamask/utils";
+import { keccak256 } from "ethereum-cryptography/keccak";
 import SimpleKeyring from "./simple-keyring";
 
 type AAWallet = {
@@ -28,9 +32,11 @@ export default class SimpleAAKeyring extends SimpleKeyring {
     this.#aawallets = [];
     /* istanbul ignore next: It's not possible to write a unit test for this, because a constructor isn't allowed
      * to be async. Jest can't await the constructor, and when the error gets thrown, Jest can't catch it. */
-    this.deserializeAAWallets(privateKeys).catch(
+    this.deserializeAAWallets(privateKeys, contractAddrs).catch(
       (error: Error) => {
-        throw new Error(`Problem deserializing SimpleKeyring ${error.message}`);
+        throw new Error(
+          `Problem deserializing SimpleAAKeyring ${error.message}`
+        );
       }
     );
   }
@@ -39,22 +45,23 @@ export default class SimpleAAKeyring extends SimpleKeyring {
     return this.#aawallets.map((a) => a.privateKey.toString("hex"));
   }
 
-  async deserializeAAWallets(privateKeys: string[] = []) {
+  async deserializeAAWallets(
+    privateKeys: string[] = [],
+    contractAddrs: Hex[] = []
+  ) {
     this.#aawallets = privateKeys
-      .map((hexPrivateKey) => {
+      .map((hexPrivateKey, index) => {
         const strippedHexPrivateKey = stripHexPrefix(hexPrivateKey);
         const privateKey = Buffer.from(strippedHexPrivateKey, "hex");
         const publicKey = privateToPublic(privateKey);
-        const contractAddr = this.#aawallets.find((wallet) =>
-          wallet.privateKey.equals(privateKey)
-        )?.contractAddr;
+        const contractAddr = contractAddrs[index];
 
         return { privateKey, publicKey, contractAddr };
       })
       .filter((wallet): wallet is AAWallet => !!wallet);
   }
 
-  async addAAAccounts(numAccounts = 1, privateKey: Buffer, contractAddr: Hex) {
+  async addAAWallets(numAccounts = 1, privateKey: Buffer, contractAddr: Hex) {
     const newWallets = [];
     for (let i = 0; i < numAccounts; i++) {
       const publicKey = privateToPublic(privateKey);
@@ -67,7 +74,73 @@ export default class SimpleAAKeyring extends SimpleKeyring {
     return hexWallets;
   }
 
-  async getAAAccounts() {
+  async getAAWallets() {
     return this.#aawallets.map((a) => a.contractAddr);
+  }
+
+  async exportAAWallet(address: Hex, withAppKeyOrigin: "") {
+    const wallet = this.#getWalletForAccount(address, withAppKeyOrigin);
+    return wallet.privateKey.toString("hex");
+  }
+
+  removeAAWallet(contractAddr: string) {
+    if (
+      !this.#aawallets
+        .map(({ contractAddr }) => contractAddr.toLowerCase())
+        .includes(stripHexPrefix(contractAddr).toLowerCase())
+    ) {
+      throw new Error(`Address ${contractAddr} not found in this keyring`);
+    }
+
+    this.#aawallets = this.#aawallets.filter(
+      ({ contractAddr }) =>
+        contractAddr.toLowerCase() !==
+        stripHexPrefix(contractAddr).toLowerCase()
+    );
+  }
+
+  /**
+   * @params address must be the userOp.sender
+   * @returns Used in the userOp.signature
+   */
+  async signUserOp(address: Hex, userOpHash: string, withAppKeyOrigin: "") {
+    const message = stripHexPrefix(userOpHash);
+    if (message.length === 0 || !message.match(/^[a-fA-F0-9]*$/u)) {
+      throw new Error("Cannot sign invalid message");
+    }
+    const privKey = this.#getPrivateKeyFor(address, withAppKeyOrigin);
+    const msgSig = ecsign(Buffer.from(message, "hex"), privKey);
+    const rawMsgSig = concatSig(toBuffer(msgSig.v), msgSig.r, msgSig.s);
+    return rawMsgSig;
+  }
+
+  #getPrivateKeyFor(address: Hex, withAppKeyOrigin: "") {
+    if (!address) {
+      throw new Error("Must specify address.");
+    }
+    const wallet = this.#getWalletForAccount(address, withAppKeyOrigin);
+    return wallet.privateKey;
+  }
+
+  #getWalletForAccount(contractAddr: Hex, withAppKeyOrigin: string) {
+    let wallet = this.#aawallets.find(
+      ({ contractAddr }) => contractAddr === contractAddr
+    );
+    if (!wallet) {
+      throw new Error("Simple AA Keyring - Unable to find matching address.");
+    }
+
+    const { privateKey } = wallet;
+    const appKeyOriginBuffer = Buffer.from(withAppKeyOrigin, "utf8");
+    const appKeyBuffer = Buffer.concat([privateKey, appKeyOriginBuffer]);
+    const appKeyPrivateKey = arrToBufArr(keccak256(appKeyBuffer));
+    const appKeyPublicKey = privateToPublic(appKeyPrivateKey);
+    wallet = {
+      privateKey: appKeyPrivateKey,
+      publicKey: appKeyPublicKey,
+      contractAddr: contractAddr,
+    };
+
+    return wallet;
   }
 }
