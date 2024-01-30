@@ -4,6 +4,31 @@ If EOA is one of your aa wallet's owner, the Metamask KeyringController is a goo
 
 This repo is modified from the example of [eth-simple-keyring](https://github.com/MetaMask/eth-simple-keyring).
 
+## Run
+
+### 1. Run the test
+
+```
+# TBD
+```
+
+### 2. Run the example
+
+```
+# TBD
+```
+
+### 3. Run the formatter
+
+```
+$ yarn format
+```
+
+### 4. Run the Linter
+
+```
+$ yarn lint
+```
 
 ## Reference
 

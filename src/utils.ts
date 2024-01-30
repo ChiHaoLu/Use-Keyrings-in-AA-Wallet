@@ -1,6 +1,4 @@
-import {
-  isValidPrivate
-} from '@ethereumjs/util';
+import { isValidPrivate } from "@ethereumjs/util";
 
 import randombytes from "randombytes";
 
@@ -14,7 +12,7 @@ export function generateKey(): Buffer {
 
   if (!isValidPrivate(privateKey)) {
     throw new Error(
-      "Private key does not satisfy the curve requirements (ie. it is invalid)"
+      "Private key does not satisfy the curve requirements (ie. it is invalid)",
     );
   }
   return privateKey;

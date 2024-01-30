@@ -19,24 +19,22 @@ import {
 } from "@metamask/eth-sig-util";
 import { add0x, Eip1024EncryptedData, Hex, Keyring } from "@metamask/utils";
 import { keccak256 } from "ethereum-cryptography/keccak";
-import { generateKey } from "./utils"
+import { generateKey } from "./utils";
 
 type KeyringOpt = {
   withAppKeyOrigin?: string;
   version?: SignTypedDataVersion | string;
 };
 
-const TYPE = "Simple Key Pair";
-
 export default class SimpleKeyring implements Keyring<string[]> {
   #wallets: { privateKey: Buffer; publicKey: Buffer }[];
 
-  readonly type: string = TYPE;
+  readonly type: string;
+  static type: string;
 
-  static type: string = TYPE;
-
-  constructor(privateKeys: string[] = []) {
+  constructor(privateKeys: string[] = [], type: string) {
     this.#wallets = [];
+    this.type = type;
 
     /* istanbul ignore next: It's not possible to write a unit test for this, because a constructor isn't allowed
      * to be async. Jest can't await the constructor, and when the error gets thrown, Jest can't catch it. */
@@ -67,21 +65,21 @@ export default class SimpleKeyring implements Keyring<string[]> {
     }
     this.#wallets = this.#wallets.concat(newWallets);
     const hexWallets = newWallets.map(({ publicKey }) =>
-      add0x(bufferToHex(publicToAddress(publicKey)))
+      add0x(bufferToHex(publicToAddress(publicKey))),
     );
     return hexWallets;
   }
 
   async getAccounts() {
     return this.#wallets.map(({ publicKey }) =>
-      add0x(bufferToHex(publicToAddress(publicKey)))
+      add0x(bufferToHex(publicToAddress(publicKey))),
     );
   }
 
   async signTransaction(
     address: Hex,
     transaction: TypedTransaction,
-    opts: KeyringOpt = {}
+    opts: KeyringOpt = {},
   ): Promise<TypedTransaction> {
     const privKey = this.#getPrivateKeyFor(address, opts);
     const signedTx = transaction.sign(privKey);
@@ -93,7 +91,7 @@ export default class SimpleKeyring implements Keyring<string[]> {
   async signMessage(
     address: Hex,
     data: string,
-    opts = { withAppKeyOrigin: "", validateMessage: true }
+    opts = { withAppKeyOrigin: "", validateMessage: true },
   ) {
     const message = stripHexPrefix(data);
     if (
@@ -112,7 +110,7 @@ export default class SimpleKeyring implements Keyring<string[]> {
   async signPersonalMessage(
     address: Hex,
     msgHex: Hex,
-    opts = { withAppKeyOrigin: "" }
+    opts = { withAppKeyOrigin: "" },
   ) {
     const privKey = this.#getPrivateKeyFor(address, opts);
     return personalSign({ privateKey: privKey, data: msgHex });
@@ -129,7 +127,7 @@ export default class SimpleKeyring implements Keyring<string[]> {
   async signTypedData(
     address: Hex,
     typedData: any,
-    opts: KeyringOpt = { version: SignTypedDataVersion.V1 }
+    opts: KeyringOpt = { version: SignTypedDataVersion.V1 },
   ) {
     // Treat invalid versions as "V1"
     let version = SignTypedDataVersion.V1;
@@ -179,7 +177,7 @@ export default class SimpleKeyring implements Keyring<string[]> {
     if (
       !this.#wallets
         .map(({ publicKey }) =>
-          bufferToHex(publicToAddress(publicKey)).toLowerCase()
+          bufferToHex(publicToAddress(publicKey)).toLowerCase(),
         )
         .includes(address.toLowerCase())
     ) {
@@ -189,14 +187,14 @@ export default class SimpleKeyring implements Keyring<string[]> {
     this.#wallets = this.#wallets.filter(
       ({ publicKey }) =>
         bufferToHex(publicToAddress(publicKey)).toLowerCase() !==
-        address.toLowerCase()
+        address.toLowerCase(),
     );
   }
 
   #getWalletForAccount(account: string | number, opts: KeyringOpt = {}) {
     const address = normalize(account);
     let wallet = this.#wallets.find(
-      ({ publicKey }) => bufferToHex(publicToAddress(publicKey)) === address
+      ({ publicKey }) => bufferToHex(publicToAddress(publicKey)) === address,
     );
     if (!wallet) {
       throw new Error("Simple Keyring - Unable to find matching address.");

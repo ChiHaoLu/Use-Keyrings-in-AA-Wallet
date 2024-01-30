@@ -13,15 +13,15 @@ import SimpleKeyring from "./simple-keyring";
 export default class SimpleAAKeyring extends SimpleKeyring {
   #aawallets: { privateKey: Buffer; publicKey: Buffer; contractAddr: string }[];
 
-  constructor(privateKeys: string[] = []) {
-    super();
+  constructor(privateKeys: string[] = [], type: string = "Simple AA Keyring") {
+    super(privateKeys, type);
     this.#aawallets = [];
   }
 
   async addAAAccounts(
     numAccounts = 1,
     privateKey: Buffer,
-    contractAddr: string
+    contractAddr: string,
   ) {
     const newWallets = [];
     for (let i = 0; i < numAccounts; i++) {
@@ -30,14 +30,12 @@ export default class SimpleAAKeyring extends SimpleKeyring {
     }
     this.#aawallets = this.#aawallets.concat(newWallets);
     const hexWallets = newWallets.map(({ publicKey }) =>
-      add0x(bufferToHex(publicToAddress(publicKey)))
+      add0x(bufferToHex(publicToAddress(publicKey))),
     );
     return hexWallets;
   }
 
   async getAAAccounts() {
-    return this.#aawallets.map(({ contractAddr }) =>
-      contractAddr
-    );
+    return this.#aawallets.map((a) => a.contractAddr);
   }
 }
