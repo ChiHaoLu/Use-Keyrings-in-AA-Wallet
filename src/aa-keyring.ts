@@ -1,24 +1,20 @@
 import {
   arrToBufArr,
-  bufferToHex,
   ecsign,
   privateToPublic,
-  publicToAddress,
   stripHexPrefix,
   toBuffer,
 } from "@ethereumjs/util";
-import {
-  concatSig,
-} from "@metamask/eth-sig-util";
-import { add0x, Hex } from "@metamask/utils";
+import { concatSig } from "@metamask/eth-sig-util";
+import { Hex } from "@metamask/utils";
 import { keccak256 } from "ethereum-cryptography/keccak";
 import SimpleKeyring from "./simple-keyring";
 
 type AAWallet = {
-    privateKey: Buffer;
-    publicKey: Buffer;
-    contractAddr: Hex 
-}
+  privateKey: Buffer;
+  publicKey: Buffer;
+  contractAddr: Hex;
+};
 
 export default class SimpleAAKeyring extends SimpleKeyring {
   #aawallets: AAWallet[];
@@ -26,7 +22,7 @@ export default class SimpleAAKeyring extends SimpleKeyring {
   constructor(
     privateKeys: string[] = [],
     contractAddrs: Hex[] = [],
-    type: string = "Simple AA Keyring"
+    type: string = "Simple AA Keyring",
   ) {
     super(privateKeys, type);
     this.#aawallets = [];
@@ -35,9 +31,9 @@ export default class SimpleAAKeyring extends SimpleKeyring {
     this.deserializeAAWallets(privateKeys, contractAddrs).catch(
       (error: Error) => {
         throw new Error(
-          `Problem deserializing SimpleAAKeyring ${error.message}`
+          `Problem deserializing SimpleAAKeyring ${error.message}`,
         );
-      }
+      },
     );
   }
 
@@ -47,7 +43,7 @@ export default class SimpleAAKeyring extends SimpleKeyring {
 
   async deserializeAAWallets(
     privateKeys: string[] = [],
-    contractAddrs: Hex[] = []
+    contractAddrs: Hex[] = [],
   ) {
     this.#aawallets = privateKeys
       .map((hexPrivateKey, index) => {
@@ -61,16 +57,23 @@ export default class SimpleAAKeyring extends SimpleKeyring {
       .filter((wallet): wallet is AAWallet => !!wallet);
   }
 
-  async addAAWallets(numAccounts = 1, privateKey: Buffer, contractAddr: Hex) {
+  async addAAWallets(
+    numAccounts = 1,
+    privateKeys: Buffer[],
+    contractAddrs: Hex[],
+  ) {
     const newWallets = [];
     for (let i = 0; i < numAccounts; i++) {
+      const privateKey = privateKeys[i];
+      const contractAddr = contractAddrs[i];
+      if (privateKey === undefined || contractAddr === undefined) {
+        continue;
+      }
       const publicKey = privateToPublic(privateKey);
       newWallets.push({ privateKey, publicKey, contractAddr });
     }
     this.#aawallets = this.#aawallets.concat(newWallets);
-    const hexWallets = newWallets.map(({ publicKey }) =>
-      add0x(bufferToHex(publicToAddress(publicKey)))
-    );
+    const hexWallets = newWallets.map(({ contractAddr }) => contractAddr);
     return hexWallets;
   }
 
@@ -95,7 +98,7 @@ export default class SimpleAAKeyring extends SimpleKeyring {
     this.#aawallets = this.#aawallets.filter(
       ({ contractAddr }) =>
         contractAddr.toLowerCase() !==
-        stripHexPrefix(contractAddr).toLowerCase()
+        stripHexPrefix(contractAddr).toLowerCase(),
     );
   }
 
@@ -124,7 +127,7 @@ export default class SimpleAAKeyring extends SimpleKeyring {
 
   #getWalletForAccount(contractAddr: Hex, withAppKeyOrigin: string) {
     let wallet = this.#aawallets.find(
-      ({ contractAddr }) => contractAddr === contractAddr
+      ({ contractAddr }) => contractAddr === contractAddr,
     );
     if (!wallet) {
       throw new Error("Simple AA Keyring - Unable to find matching address.");

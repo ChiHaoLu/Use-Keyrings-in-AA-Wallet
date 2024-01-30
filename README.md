@@ -14,6 +14,22 @@ This repo is modified from the example of [eth-simple-keyring](https://github.co
 
 ### 2. Run the example
 
+#### 2.1 Run the off-chain example
+
+```
+# TBD
+```
+
+#### 2.2 Run the on-chain example
+
+Make sure to fill the `.env` fields.
+
+```
+# TBD
+```
+
+#### 2.3 Run the keyring controller example
+
 ```
 # TBD
 ```
